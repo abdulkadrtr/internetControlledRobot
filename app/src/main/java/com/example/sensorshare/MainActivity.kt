@@ -1,7 +1,5 @@
 package com.example.sensorshare
 import android.Manifest
-import android.annotation.SuppressLint
-import androidx.activity.result.contract.ActivityResultContracts
 import android.os.Bundle
 import android.content.Context
 import android.content.Intent
@@ -54,7 +52,7 @@ import androidx.camera.core.ImageCapture.OutputFileOptions
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.VideoCapture
-
+import org.json.JSONObject
 
 
 
@@ -196,6 +194,7 @@ fun enableHotspot(context: Context) {
     intent.setClassName("com.android.settings", "com.android.settings.TetherSettings")
     context.startActivity(intent)
 }
+
 fun startServer() {
     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
     StrictMode.setThreadPolicy(policy)
@@ -207,7 +206,7 @@ fun startServer() {
                 val inputStream = BufferedReader(InputStreamReader(socket.getInputStream()))
                 val printWriter = PrintWriter(socket.getOutputStream(), true)
                 val request = inputStream.readLine()
-                println("SERVER INF $request")
+                println("REQUEST BODY : $request")
                 if (request.startsWith("OPTIONS")) {
                     printWriter.println("HTTP/1.1 200 OK")
                     printWriter.println("Access-Control-Allow-Origin: *")
@@ -276,6 +275,19 @@ fun startServer() {
                     printWriter.println("Content-Type: application/json")
                     printWriter.println()
                     printWriter.println("{\"base64Image\": \" $base64Image \"}")
+                    printWriter.flush()
+                } else if(request.startsWith("POST /control HTTP/1.1")){
+                    printWriter.println("HTTP/1.1 200 OK")
+                    printWriter.println("Access-Control-Allow-Origin: *")
+                    printWriter.println("Access-Control-Allow-Methods: POST")
+                    printWriter.println("Access-Control-Allow-Headers: Content-Type")
+                    printWriter.println("Content-Type: application/json")
+                    printWriter.println()
+                    printWriter.println("{\"controlSignal\": \" OK \"}")
+                    printWriter.flush()
+                }else{
+                    printWriter.println("HTTP/1.1 404 Not Found")
+                    printWriter.println()
                     printWriter.flush()
                 }
                 socket.close()
