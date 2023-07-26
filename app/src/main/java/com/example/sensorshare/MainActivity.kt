@@ -1,23 +1,23 @@
 package com.example.sensorshare
 import android.Manifest
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.os.Bundle
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.hardware.usb.UsbConstants
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.StrictMode
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -32,28 +32,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.LifecycleOwner
 import java.io.BufferedReader
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
-import java.io.InputStream
 import java.io.InputStreamReader
-import java.io.OutputStream
 import java.io.PrintWriter
 import java.net.ServerSocket
-import java.net.Socket
-import java.util.concurrent.ExecutorService
-import android.util.Base64
-import java.util.concurrent.Executors
-import androidx.camera.core.ImageCapture.OutputFileOptions
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
-import androidx.camera.core.VideoCapture
-import org.json.JSONObject
-
+import android.hardware.usb.UsbDevice
+import android.hardware.usb.UsbDeviceConnection
+import android.hardware.usb.UsbEndpoint
+import android.hardware.usb.UsbInterface
+import android.hardware.usb.UsbManager
+import android.os.Build
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 var latitude: Double = 0.0
@@ -71,8 +62,8 @@ var orientationY : Float = 0.0f
 var orientationZ : Float = 0.0f
 var base64Image : String = ""
 
+private val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -151,9 +142,24 @@ class MainActivity : ComponentActivity() {
             override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
         }
         sensorManager.registerListener(orientationListener, orientation, SensorManager.SENSOR_DELAY_NORMAL)
+        //usb bağlantısı
+        val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val deviceIterator: Iterator<UsbDevice> = usbManager.deviceList.values.iterator()
+        if(deviceIterator.hasNext()!=null){
+            val arduioDevice = deviceIterator.next()
+            if(!usbManager.hasPermission(arduioDevice)){
+                val permissionIntent = PendingIntent.getBroadcast(
+                    this,
+                    0,
+                    Intent(ACTION_USB_PERMISSION),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+                usbManager.requestPermission(arduioDevice, permissionIntent)
+            }
+        }
         startServer()
-        println("Server Başlatıldı")
     }
+
     inner class MyLocationListener : LocationListener{
         override fun onLocationChanged(location: Location){
             latitude = location.latitude
@@ -277,6 +283,31 @@ fun startServer() {
                     printWriter.println("{\"base64Image\": \" $base64Image \"}")
                     printWriter.flush()
                 } else if(request.startsWith("POST /control HTTP/1.1")){
+                    var controlSignal = 0
+                    var signal = inputStream.readLine()
+                    val regex = Regex("""\d+""")
+                    val matchResult = regex.find(signal)
+                    /*
+                    if(matchResult != null){
+                        controlSignal = matchResult.value.toInt()
+                        println("CONTROL SIGNAL : $controlSignal")
+                        //USB portuna bağlı olan arduino'ya sinyal gönderme
+                        //controlSignal değişkeni gönderilecek sinyal
+                        if(deviceIterator.hasNext()!= null){
+                            val arduioDevice = deviceIterator.next()
+                            val connection: UsbDeviceConnection = usbManager.openDevice(arduioDevice)
+                            val usbInterface: UsbInterface = arduioDevice.getInterface(0)
+                            val endpoint: UsbEndpoint = usbInterface.getEndpoint(0)
+                            val requestType: Int = UsbConstants.USB_TYPE_VENDOR or UsbConstants.USB_DIR_OUT
+                            val request: Int = 0x01
+                            val value: Int = controlSignal
+                            val index: Int = 0x01
+                            val buffer: ByteArray = ByteArray(1)
+                            buffer[0] = (value and 0xFF).toByte()
+                            connection.controlTransfer(requestType, request, value, index, buffer, 0, 0)
+                        }
+                    }
+                     */
                     printWriter.println("HTTP/1.1 200 OK")
                     printWriter.println("Access-Control-Allow-Origin: *")
                     printWriter.println("Access-Control-Allow-Methods: POST")
