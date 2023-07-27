@@ -1,17 +1,13 @@
 package com.example.sensorshare
 import android.Manifest
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.os.Bundle
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.hardware.usb.UsbConstants
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -36,15 +32,9 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket
-import android.hardware.usb.UsbDevice
-import android.hardware.usb.UsbDeviceConnection
-import android.hardware.usb.UsbEndpoint
-import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
-import android.os.Build
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.hoho.android.usbserial.driver.UsbSerialPort
+import com.hoho.android.usbserial.driver.UsbSerialProber
 
 
 var latitude: Double = 0.0
@@ -142,22 +132,28 @@ class MainActivity : ComponentActivity() {
             override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
         }
         sensorManager.registerListener(orientationListener, orientation, SensorManager.SENSOR_DELAY_NORMAL)
+
         //usb bağlantısı
-        val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
-        val deviceIterator: Iterator<UsbDevice> = usbManager.deviceList.values.iterator()
-        if(deviceIterator.hasNext()!=null){
-            val arduioDevice = deviceIterator.next()
-            if(!usbManager.hasPermission(arduioDevice)){
-                val permissionIntent = PendingIntent.getBroadcast(
-                    this,
-                    0,
-                    Intent(ACTION_USB_PERMISSION),
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-                usbManager.requestPermission(arduioDevice, permissionIntent)
-            }
+        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
+        if (availableDrivers.isEmpty()) {
+            return
         }
-        startServer()
+        val driver = availableDrivers[0]
+        val connection = manager.openDevice(driver.device)
+        if (connection == null) {
+            // add UsbManager.requestPermission(driver.device, ..) handling here
+            return
+        }
+        val port = driver.ports[0] // Most devices have just one port (port 0)
+        port.open(connection)
+        port.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+        /*
+        port.write("2".toByteArray(), 1000)
+        port.close()
+        */
+
+        startServer(port)
     }
 
     inner class MyLocationListener : LocationListener{
@@ -201,7 +197,7 @@ fun enableHotspot(context: Context) {
     context.startActivity(intent)
 }
 
-fun startServer() {
+fun startServer(port: UsbSerialPort) {
     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
     StrictMode.setThreadPolicy(policy)
     val serverThread = Thread {
@@ -283,31 +279,15 @@ fun startServer() {
                     printWriter.println("{\"base64Image\": \" $base64Image \"}")
                     printWriter.flush()
                 } else if(request.startsWith("POST /control HTTP/1.1")){
-                    var controlSignal = 0
+                    var controlSignal = ""
                     var signal = inputStream.readLine()
                     val regex = Regex("""\d+""")
                     val matchResult = regex.find(signal)
-                    /*
                     if(matchResult != null){
-                        controlSignal = matchResult.value.toInt()
-                        println("CONTROL SIGNAL : $controlSignal")
-                        //USB portuna bağlı olan arduino'ya sinyal gönderme
-                        //controlSignal değişkeni gönderilecek sinyal
-                        if(deviceIterator.hasNext()!= null){
-                            val arduioDevice = deviceIterator.next()
-                            val connection: UsbDeviceConnection = usbManager.openDevice(arduioDevice)
-                            val usbInterface: UsbInterface = arduioDevice.getInterface(0)
-                            val endpoint: UsbEndpoint = usbInterface.getEndpoint(0)
-                            val requestType: Int = UsbConstants.USB_TYPE_VENDOR or UsbConstants.USB_DIR_OUT
-                            val request: Int = 0x01
-                            val value: Int = controlSignal
-                            val index: Int = 0x01
-                            val buffer: ByteArray = ByteArray(1)
-                            buffer[0] = (value and 0xFF).toByte()
-                            connection.controlTransfer(requestType, request, value, index, buffer, 0, 0)
-                        }
+                        controlSignal = matchResult.value.toString()
+                        port.write(controlSignal.toByteArray(), 1000)
+                        //port.close()
                     }
-                     */
                     printWriter.println("HTTP/1.1 200 OK")
                     printWriter.println("Access-Control-Allow-Origin: *")
                     printWriter.println("Access-Control-Allow-Methods: POST")
