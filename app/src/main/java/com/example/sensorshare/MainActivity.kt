@@ -38,6 +38,7 @@ import android.provider.Settings
 import android.widget.Toast
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
+import java.lang.StringBuilder
 
 
 var latitude: Double = 0.0
@@ -53,7 +54,6 @@ var accelerometerZ : Float = 0.0f
 var orientationX : Float = 0.0f
 var orientationY : Float = 0.0f
 var orientationZ : Float = 0.0f
-var base64Image : String = ""
 
 private val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
 class MainActivity : ComponentActivity() {
@@ -211,11 +211,18 @@ fun startServer(port: UsbSerialPort) {
         try {
             val serverSocket = ServerSocket(8080)
             while (true) {
+                /*
                 val socket = serverSocket.accept()
                 val inputStream = BufferedReader(InputStreamReader(socket.getInputStream()))
                 val printWriter = PrintWriter(socket.getOutputStream(), true)
                 val request = inputStream.readLine()
-                println("REQUEST BODY : $request")
+                */
+                val socket = serverSocket.accept()
+                val inputStream = socket.getInputStream()
+                val printWriter = PrintWriter(socket.getOutputStream())
+                val bytes = ByteArray(1024)
+                val bytesRead = inputStream.read(bytes)
+                val request = String(bytes, 0, bytesRead-1)
                 if (request.startsWith("OPTIONS")) {
                     printWriter.println("HTTP/1.1 200 OK")
                     printWriter.println("Access-Control-Allow-Origin: *")
@@ -276,15 +283,6 @@ fun startServer(port: UsbSerialPort) {
                     printWriter.println()
                     printWriter.println("{\"orientationX\": \" $orientationX \", \"orientationY\": \" $orientationY \", \"orientationZ\": \" $orientationZ \"}")
                     printWriter.flush()
-                } else if(request.startsWith("GET /camera HTTP/1.1")){
-                    printWriter.println("HTTP/1.1 200 OK")
-                    printWriter.println("Access-Control-Allow-Origin: *")
-                    printWriter.println("Access-Control-Allow-Methods: POST")
-                    printWriter.println("Access-Control-Allow-Headers: Content-Type")
-                    printWriter.println("Content-Type: application/json")
-                    printWriter.println()
-                    printWriter.println("{\"base64Image\": \" $base64Image \"}")
-                    printWriter.flush()
                 } else if(request.startsWith("POST /control HTTP/1.1")){
                     printWriter.println("HTTP/1.1 200 OK")
                     printWriter.println("Access-Control-Allow-Origin: *")
@@ -292,20 +290,17 @@ fun startServer(port: UsbSerialPort) {
                     printWriter.println("Access-Control-Allow-Headers: Content-Type")
                     printWriter.println("Content-Type: application/json")
                     printWriter.println()
-                    var controlSignal = ""
-                    var signal = inputStream.readLine()
-                    val regex = Regex("""\d+""")
-                    val matchResult = regex.find(signal)
-                    if(matchResult != null){
-                        controlSignal = matchResult.value.toString()
+                    try{
+                        var controlSignal = request.substringAfterLast(":").trim()
+                        controlSignal = controlSignal.substring(1, controlSignal.length - 1)
+                        println("ARDUINO SIGNAL: $controlSignal")
                         port.write(controlSignal.toByteArray(), 1000)
-                        //port.close()
                         printWriter.println("{\"controlSignal\": \" OK \"}")
-
-                    }else{
-                        printWriter.println("{\"controlSignal\": \" NOT_OK \"}")
+                        printWriter.flush()
+                    }catch (e: Exception){
+                        printWriter.println("{\"controlSignal\": \" ERROR \"}")
+                        printWriter.flush()
                     }
-                    printWriter.flush()
                 }else{
                     printWriter.println("HTTP/1.1 404 Not Found")
                     printWriter.println()
