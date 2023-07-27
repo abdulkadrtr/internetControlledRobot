@@ -1,5 +1,6 @@
 package com.example.sensorshare
 import android.Manifest
+import android.app.PendingIntent
 import android.os.Bundle
 import android.content.Context
 import android.content.Intent
@@ -33,6 +34,8 @@ import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket
 import android.hardware.usb.UsbManager
+import android.provider.Settings
+import android.widget.Toast
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
 
@@ -132,28 +135,31 @@ class MainActivity : ComponentActivity() {
             override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
         }
         sensorManager.registerListener(orientationListener, orientation, SensorManager.SENSOR_DELAY_NORMAL)
-
+        println("SERVER BASLATILDI 1")
         //usb bağlantısı
         val manager = getSystemService(Context.USB_SERVICE) as UsbManager
         val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
         if (availableDrivers.isEmpty()) {
+            println("SERVER BASLATILDI 2")
             return
         }
         val driver = availableDrivers[0]
         val connection = manager.openDevice(driver.device)
         if (connection == null) {
-            // add UsbManager.requestPermission(driver.device, ..) handling here
+            val permissionIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                Intent(ACTION_USB_PERMISSION),
+                PendingIntent.FLAG_IMMUTABLE
+            )
+            manager.requestPermission(driver.device, permissionIntent)
             return
         }
-        val port = driver.ports[0] // Most devices have just one port (port 0)
+        val port = driver.ports[0]
         port.open(connection)
         port.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
-        /*
-        port.write("2".toByteArray(), 1000)
-        port.close()
-        */
-
         startServer(port)
+        showToast(this, "Server Başlatıldı")
     }
 
     inner class MyLocationListener : LocationListener{
@@ -166,7 +172,9 @@ class MainActivity : ComponentActivity() {
         override fun onProviderDisabled(provider: String) {}
     }
 }
-
+fun showToast(context: Context, message: String) {
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+}
 @Composable
 fun CenteredButton() {
     val context = LocalContext.current
@@ -179,7 +187,7 @@ fun CenteredButton() {
             onClick = { enableHotspot(context) },
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(text = "Sistemi Başlat")
+            Text(text = "Ağ Ayarları")
         }
     }
 }
@@ -192,8 +200,7 @@ fun CenteredButtonPreview() {
     }
 }
 fun enableHotspot(context: Context) {
-    val intent = Intent(Intent.ACTION_MAIN)
-    intent.setClassName("com.android.settings", "com.android.settings.TetherSettings")
+    val intent = Intent(Settings.ACTION_WIRELESS_SETTINGS)
     context.startActivity(intent)
 }
 
@@ -279,6 +286,12 @@ fun startServer(port: UsbSerialPort) {
                     printWriter.println("{\"base64Image\": \" $base64Image \"}")
                     printWriter.flush()
                 } else if(request.startsWith("POST /control HTTP/1.1")){
+                    printWriter.println("HTTP/1.1 200 OK")
+                    printWriter.println("Access-Control-Allow-Origin: *")
+                    printWriter.println("Access-Control-Allow-Methods: POST")
+                    printWriter.println("Access-Control-Allow-Headers: Content-Type")
+                    printWriter.println("Content-Type: application/json")
+                    printWriter.println()
                     var controlSignal = ""
                     var signal = inputStream.readLine()
                     val regex = Regex("""\d+""")
@@ -287,14 +300,11 @@ fun startServer(port: UsbSerialPort) {
                         controlSignal = matchResult.value.toString()
                         port.write(controlSignal.toByteArray(), 1000)
                         //port.close()
+                        printWriter.println("{\"controlSignal\": \" OK \"}")
+
+                    }else{
+                        printWriter.println("{\"controlSignal\": \" NOT_OK \"}")
                     }
-                    printWriter.println("HTTP/1.1 200 OK")
-                    printWriter.println("Access-Control-Allow-Origin: *")
-                    printWriter.println("Access-Control-Allow-Methods: POST")
-                    printWriter.println("Access-Control-Allow-Headers: Content-Type")
-                    printWriter.println("Content-Type: application/json")
-                    printWriter.println()
-                    printWriter.println("{\"controlSignal\": \" OK \"}")
                     printWriter.flush()
                 }else{
                     printWriter.println("HTTP/1.1 404 Not Found")
