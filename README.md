@@ -32,6 +32,7 @@ Temel hedefimiz, kamikaze robotlar için ekonomik bir robotik çözüm sunmaktı
   - Bu aşamada projeyi özelleştirebilir. Arduino pinlerinden dilediğinizi kullanabilir ve manuel sinyal gönder alanını kullanarak arduino ile haberleşebilirsiniz. Örnek arduino kodları bu işlemler için rehber niteliğindedir.
 
 ### Robot Modeli
-![robot](https://github.com/abdulkadrtr/internetControlledRobot/assets/87595266/4301caf4-25bb-4232-8900-140520500133)
+![robot](https://github.com/abdulkadrtr/internetControlledRobot/assets/87595266/4f791f5c-18c2-4ddd-9585-44dd323387fa)
 ### Yönetim Paneli Önizlemesi:
-![Screenshot_1](https://github.com/abdulkadrtr/internetControlledRobot/assets/87595266/6af7ef56-b2b9-4b24-82f7-eeb69013c696)
+![Screenshot_1](https://github.com/abdulkadrtr/internetControlledRobot/assets/87595266/b74fcf18-eb25-4b8b-b26c-69625de1ee4a)
+
