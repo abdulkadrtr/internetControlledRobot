@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Robot Yönetim Paneli</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js"></script>
+    <script src="script.js" type="text/javascript"></script>
+</head>
+<body>
+    <div class="row">
+        <div class="column1">
+            <label for="phone-ip">Telefon IP Adres:</label>
+            <input type="text" id="phone-ip">
+            <button onclick="connect()">Bağlan</button><br>
+            <label for="">Manuel Sinyal:</label>
+            <input type="text" id="manuelControlSignal">
+            <button onclick="sendControlSignal(document.getElementById('manuelControlSignal').value)">Gönder</button><br><br>
+            <table>
+                <tr>
+                    <td></td>
+                    <td><button onclick="sendControlSignal(1)">↑ W</button></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><button onclick="sendControlSignal(4)">← A</button></td>
+                    <td></td>
+                    <td><button onclick="sendControlSignal(3)">S →</button></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><button onclick="sendControlSignal(2)">↓ D</button></td>
+                    <td></td>
+                </tr>
+            </table><br>
+            
+        </div>
+        <div class="column2">
+            <div id="video-container">
+                <iframe id="video" src=""></iframe>
+            </div><br><br>
+            <div id="map" class="map"></div><br><br>
+        </div>
+        <div class="column3">
+            <label>Gyroscope:</label><br><br>
+            X: <span id="gyroscope-x"></span>, Y: <span id="gyroscope-y"></span>, Z: <span id="gyroscope-z"></span><br><br>
+            <label>Accelerometer:</label><br><br>
+            X: <span id="accelerometer-x"></span>, Y: <span id="accelerometer-y"></span>, Z: <span id="accelerometer-z"></span><br><br>
+            <label>Orientation:</label><br><br>
+            Alpha: <span id="orientation-alpha"></span>, Beta: <span id="orientation-beta"></span>, Gamma: <span id="orientation-gamma"></span><br><br>
+            <label>Light:</label>
+            <span id="light-value"></span><br><br>
+          <button onclick="sendControlSignal(4)">Far Aç</button> 
+          <button onclick="sendControlSignal(5)">Far Kapat</button> 
+        </div>
+    </div>
+</body>
+</html>
