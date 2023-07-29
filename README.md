@@ -1,4 +1,5 @@
 # Arduino & Phone as an HTTP Server for Remote Control
+![Robot](https://github.com/abdulkadrtr/internetControlledRobot/assets/87595266/cae62f8c-5bb9-44a0-9728-fea0ddd40bf6)
 ## SensorShare: Arduino ile Telefon Arasında Köprü Kuran İnternet Bağlantılı Robot Projesi
 ### Proje Hakkında 
 Arduino ve telefonunuz arasında bağlantı kuran, yenilikçi bir proje olan SensorShare kotlin dilinde yazılmış bir mobil uygulamadır. Bu uygulama telefonunuzu localhost port 8080 kullanarak bir HTTP  sunucusuna dönüştür. Basit GET istekleriyle `/gps` ,  `/orientation`, `/gyro`, `/accelerometer` ve `/light` adreslerinden telefonunuzun sensör verilerini kolayca almanızı sağlar. 
@@ -9,5 +10,12 @@ SensorShare, ekstra sensörler satın almadan internet bağlantılı robotlar ol
 
 Temel hedefimiz, kamikaze robotlar için ekonomik bir robotik çözüm sunmaktır.
 
-### Proje Bileşenleri
+### Proje Özellikleri
+  - Telefon Sensörleri Kullanımı: Ekstra sensörler satın almadan, telefonunuzun bulunduğu sensörlerle robotunuzu donatın.
+  - Anlık Veri İzleme: Yönetim paneli arayüzü sayesinde robotunuzun anlık sensör verilerini görebilir ve takip edebilirsiniz.
+  - Video Akışı: Robotunuzun (telefonunuzun) kamerasından gelen video akışını yönetim panelinde izleyin ve çevreyi uzaktan gözlemleyin.
+  - Konum İzleme: Yönetim paneli üzerindeki harita sayesinde robotunuzun anlık konumunu takip edin.
+  - Arduino Kontrolü: Yönetim paneli sayesinde arduino cihazınıza uzaktan komut gönderin.
+
+
 
