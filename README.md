@@ -28,7 +28,7 @@ Temel hedefimiz, kamikaze robotlar için ekonomik bir robotik çözüm sunmaktı
   - SensorShare uygulamasının .apk versiyonunu indirin ve telefonunuza yükleyin. Sonrasında GPS izinlerini aktif edin.
   - Arduino cihazınızı OTG kablosu aracılığıyla telefonunuza bağlayın. Telefonunuzda OTG izinleri aktif olmalıdır.
   - Canlı video akışı için Play Store üzerinden DroidCam uygulamasını indirin.
-  - Sensor Share uygulamasını açıp `Server Başlatıldı` uyarısı görene kadar bekleyin. Sonrasında DroidCam uygulamasına giderek ekranda gördüğünüz ip adresini Yönetim paneline girin ve bağlan tuşuna tıklayın. Bağlantı kurulduğunda yöetim paneli üzerinde bir bilgilendirme mesajı alırsınız ve yönetim paneli sürekli olarak yeni verilerle güncellenmeye başlar.
+  - Sensor Share uygulamasını açıp `Server Başlatıldı` uyarısı görene kadar bekleyin. Sonrasında DroidCam uygulamasına giderek ekranda gördüğünüz ip adresini Yönetim paneline girin ve bağlan tuşuna tıklayın. Bağlantı kurulduğunda yönetim paneli üzerinde bir bilgilendirme mesajı alırsınız ve yönetim paneli sürekli olarak yeni verilerle güncellenmeye başlar.
   - Bu aşamada projeyi özelleştirebilir. Arduino pinlerinden dilediğinizi kullanabilir ve manuel sinyal gönder alanını kullanarak arduino ile haberleşebilirsiniz. Örnek arduino kodları bu işlemler için rehber niteliğindedir.
 
 ### Robot Modeli
