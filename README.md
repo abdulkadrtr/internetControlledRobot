@@ -1,6 +1,12 @@
 # Arduino & Phone as an HTTP Server for Remote Control
 ![Robot](https://github.com/abdulkadrtr/internetControlledRobot/assets/87595266/cae62f8c-5bb9-44a0-9728-fea0ddd40bf6)
 ## SensorShare: Arduino ile Telefon Arasında Köprü Kuran İnternet Bağlantılı Robot Projesi
+
+## Proje Tanıtım Videosu & Demo 
+
+https://youtu.be/pjNkS2eiwVk
+
+
 ### Proje Hakkında 
 Arduino ve telefonunuz arasında bağlantı kuran, yenilikçi bir proje olan SensorShare kotlin dilinde yazılmış bir mobil uygulamadır. Bu uygulama telefonunuzu localhost port 8080 kullanarak bir HTTP  sunucusuna dönüştür. Basit GET istekleriyle `/gps` ,  `/orientation`, `/gyro`, `/accelerometer` ve `/light` adreslerinden telefonunuzun sensör verilerini kolayca almanızı sağlar. 
 
@@ -16,6 +22,15 @@ Temel hedefimiz, kamikaze robotlar için ekonomik bir robotik çözüm sunmaktı
   - Video Akışı: Robotunuzun (telefonunuzun) kamerasından gelen video akışını yönetim panelinde izleyin ve çevreyi uzaktan gözlemleyin.
   - Konum İzleme: Yönetim paneli üzerindeki harita sayesinde robotunuzun anlık konumunu takip edin.
   - Arduino Kontrolü: Yönetim paneli sayesinde arduino cihazınıza uzaktan komut gönderin.
+  - Uzaktan Erişim: Özel bir VPN ağı kullanarak dünya genelinden robotunuza erişin ve yönetin.
 
+### Proje Kurulumu
+  - SensorShare uygulamasının .apk versiyonunu indirin ve telefonunuza yükleyin. Sonrasında GPS izinlerini aktif edin.
+  - Arduino cihazınızı OTG kablosu aracılığıyla telefonunuza bağlayın. Telefonunuzda OTG izinleri aktif olmalıdır.
+  - Canlı video akışı için Play Store üzerinden DroidCam uygulamasını indirin.
+  - Sensor Share uygulamasını açıp `Server Başlatıldı` uyarısı görene kadar bekleyin. Sonrasında DroidCam uygulamasına giderek ekranda gördüğünüz ip adresini Yönetim paneline girin ve bağlan tuşuna tıklayın. Bağlantı kurulduğunda bir uyarı mesajı alırsınız ve yönetim paneli sürekli olarak yeni verilerle güncellenmeye devam eder.
+  - Bu aşamada projeyi özelleştirebilir. Arduino pinlerinden dilediğinizi kullanabilir ve manuel sinyal gönder alanını kullanarak arduino ile haberleşebilirsiniz. Örnek arduino kodları bu işlemler için rehber niteliğindedir.
+
+  
 
 
